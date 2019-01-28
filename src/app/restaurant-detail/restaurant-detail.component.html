@@ -1,0 +1,67 @@
+<!-- INÍCIO DO CONTEÚDO -->
+      <section class="content-header">
+        <h1>
+
+        </h1>
+      </section>
+
+
+      <section class="content">
+
+        <div class="row">
+            <div class="col-xs-12">
+              <div class="box box-solid">
+                <div class="box-header with-border">
+                  <i class="fa fa-home"></i>
+                  <!--
+                  // a prop restaurant é undefined no momento da criação do component. Ela so vai ser preenchida
+                  // quando o metodo OnInit for chamado e o metodo subscribe for chamado.
+                  // aí sim, o Observable vai fazer a chamada http, e essa chamada pode demorar, e só
+                  // depois disso é que o obj é definido. Para evitar erros e falta de informação,
+                  // no html deverá adicionar o operator de navegação segura ("?") para evitar essa falha.
+                  // ex: {{restaurant?.name}}
+                -->
+                  <h3 class="box-title">{{restaurant?.name}}</h3><span class="pull-right"><i class="fa fa-star"></i> {{restaurant?.rating}}</span>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                  <!-- Erro not found ao tentar procurar o caminho da img. Pode ser resolv com o uso do operador *ngIf="restaurant". Só será reder. quando existir. -->
+                  <div class="col-sm-3 col-xs-12" *ngIf="restaurant">
+                    <img class="box-img-detail" [src]="restaurant?.imagePath" />
+                  </div>
+
+                  <dl class="col-sm-9 col-xs-12">
+                    <dt>Categoria</dt>
+                    <dd>{{restaurant?.category}}</dd>
+                    <dt>Quem somos</dt>
+                    <dd>{{restaurant?.about}}</dd>
+                    <dt>Horários</dt>
+                    <dd>{{restaurant?.hours}}</dd>
+                  </dl>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer detail-footer">
+                  <!-- <a class="pull-left detail-active" href="detail-restaurant.html"> -->
+                <a class="pull-left" routerLinkActive="detail-active" [routerLink]="['menu']">
+                   Menu
+                </a>
+                <!-- <a class="pull-right" href="detail-restaurant-reviews.html"> -->
+                <a class="pull-right" routerLinkActive="detail-active" [routerLink]="['reviews']">
+                   Avaliações
+                </a>
+              </div>
+              </div>
+            </div>
+            <!-- /.col-xs-12 -->
+
+        </div>
+
+
+        <div class="row">
+            <!-- MENU -->
+            <!-- <mt-menu></mt-menu> forma estática, alterada para o sub-router (menu e reviews) -->
+            <router-outlet></router-outlet>
+      </div>
+
+      </section>
+      <!-- FIM DO CONTEÚDO -->

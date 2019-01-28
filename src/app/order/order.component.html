@@ -1,0 +1,131 @@
+<!--INICIO DO CONTEUDO-->
+<section class="content-header">
+</section>
+
+<section class="content">
+  <section class="invoice">
+
+    <!-- Debuggar -->
+    {{orderForm.valid}}
+    {{orderForm.value | json}}
+    <!-- Desabilitar a validação de forms do browser
+    Cada browser tem um estilo de validação diferente. Portanto criamos uma experiência comum com o Angular -->
+    <form [formGroup]="orderForm" novalidate>
+      <div class="row">
+        <div class="col-xs-12">
+          <h2 class="page-header">
+            <i class="fa fa-shopping-cart"></i> Finalize o seu pedido (Reactive Forms)
+          </h2>
+        </div>
+      </div>
+
+      <!-- Reactive Forms -->
+      <div class="row">
+        <div class="col-xs-12 col-sm-9">
+          <p class="lead">Seus Dados:</p>
+        </div>
+
+        <!-- Info do validator -->
+        <div class="col-xs-12 col-sm-3">
+          <span class="help-block pull-right has-error-block" *ngIf="orderForm.hasError('emailNotMatch')"><i class="fa fa-remove"></i> E-mails não conferem</span>
+          <!-- <span class="help-block pull-right" *ngIf="!orderForm.hasError('emailNotMatch')"><i class="fa fa-check"></i> E-mails corretos</span> -->
+        </div>
+
+        <div class="col-sm-6 col-xs-12">
+          <mt-input-container errorMessage="Campo obrigatório e com 5 caracteres" label="Nome">
+            <input class="form-control" formControlName="name" placeholder="Nome" autocomplete="off">
+          </mt-input-container>
+        </div>
+
+        <div class="col-sm-3 col-xs-6">
+          <mt-input-container errorMessage="E-mail inválido" label="E-mail">
+            <input type="text" class="form-control" formControlName="email" placeholder="E-mail" autocomplete="off">
+          </mt-input-container>
+        </div>
+
+        <div class="col-sm-3 col-xs-6">
+          <mt-input-container errorMessage="E-mail inválido" label="Confirmação de  E-mail">
+            <input type="text" class="form-control" formControlName="emailConfirmation" placeholder="Confirmação do e-mail" autocomplete="off">
+          </mt-input-container>
+        </div>
+      </div>
+      <!-- Fim Reactive Forms -->
+
+      <div class="row">
+        <div class="col-xs-12">
+          <p class="lead">Endereço de Entrega:</p>
+        </div>
+        <div class="col-sm-6 col-xs-12">
+          <mt-input-container errorMessage="Campo obrigatório e com 5 caracteres" label="Endereço">
+            <input class="form-control" formControlName="address" placeholder="Endereço" autocomplete="off">
+          </mt-input-container>
+          <!-- <div class="form-group" [class.has-success]="iptAddress.valid && (iptAddress.dirty || iptAddress.touched)"
+                                  [class.has-error]="!iptAddress.valid && (iptAddress.dirty || iptAddress.touched)">
+            <label class="control-label sr-only" for="inputSuccess"><i class="fa fa-check"></i> Endereço</label>
+            <input type="text" class="form-control" name="address" required minlength="5" ngModel #iptAddress="ngModel" placeholder="Endereço" autocomplete="off">
+            <span class="help-block" *ngIf="iptAddress.valid && (iptAddress.dirty || iptAddress.touched)"><i class="fa fa-check"></i> Ok</span>
+            <span class="help-block" *ngIf="!iptAddress.valid && (iptAddress.dirty || iptAddress.touched)"><i class="fa fa-remove"></i> Campo obrigatório</span>
+          </div> -->
+        </div>
+        <div class="col-sm-3 col-xs-6">
+          <mt-input-container errorMessage="Obrigatório e somente números" label="Número">
+            <input type="text" class="form-control" formControlName="number" placeholder="Número" autocomplete="off">
+          </mt-input-container>
+          <!-- <div class="form-group" [class.has-success]="iptNumber.valid && (iptNumber.dirty || iptNumber.touched)"
+                                  [class.has-error]="!iptNumber.valid && (iptNumber.dirty || iptNumber.touched)">
+            <label class="control-label sr-only" for="inputSuccess"><i class="fa fa-check"></i> Número</label>
+            <input type="text" class="form-control" name="number" required #iptNumber="ngModel" ngModel placeholder="Número" autocomplete="off">
+            <span class="help-block" *ngIf="iptNumber.valid && (iptNumber.dirty || iptNumber.touched)"><i class="fa fa-check"></i> Ok</span>
+            <span class="help-block" *ngIf="!iptNumber.valid && (iptNumber.dirty || iptNumber.touched)"><i class="fa fa-remove"></i> Campo obrigatório</span>
+          </div> -->
+        </div>
+        <div class="col-sm-3 col-xs-6">
+          <mt-input-container>
+            <input type="text" class="form-control" formControlName="optionalAddress" placeholder="Complemento">
+          </mt-input-container>
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+
+      <!-- Table row -->
+      <div class="row">
+        <div class="col-xs-12">
+          <p class="lead">Itens do Pedido:</p>
+        </div>
+        <mt-order-items [items]="cartItems()" (increaseQty)="increaseQty($event)" (decreaseQty)="decreaseQty($event)" (remove)="remove($event)">
+        </mt-order-items>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+
+      <div class="row">
+        <!-- accepted payments column -->
+        <div class="col-sm-6 col-xs-12">
+          <p class="lead">Formas de Pagamento:</p>
+
+          <div class="form-group">
+            <mt-radio [options]="paymentOptions" formControlName="paymentOption"></mt-radio>
+          </div>
+
+        </div>
+        <!-- /.col -->
+        <div class="col-sm-6 col-xs-12">
+          <p class="lead">Frete e Total:</p>
+          <mt-delivery-costs [delivery]="delivery" [itemsValue]="itemsValue()"></mt-delivery-costs>
+        </div>
+        <!-- /.col -->
+      </div>
+
+    </form>
+
+    <div class="row">
+      <div class="col-xs-12">
+        <button (click)="checkOrder(orderForm.value)" class="btn btn-success pull-right" [disabled]="!orderForm.valid || cartItems().length === 0"><i class="fa fa-credit-card"></i> Concluir Pedido
+        </button>
+      </div>
+    </div>
+
+  </section>
+</section>
+<!-- FIM DO CONTEUDO-->
