@@ -1,5 +1,5 @@
 
-import { NgModule } from "@angular/core"
+import { NgModule, ModuleWithProviders } from "@angular/core"
 import { CommonModule } from '@angular/common'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 
@@ -8,6 +8,11 @@ import { InputComponent } from './input/input.component'
 import { RadioComponent } from './radio/radio.component'
 import { RatingComponent } from './rating/rating.component'
 
+// imports trazidos do CoreModule (que foi apagado)
+import { ShoppingCartService } from "../restaurant-detail/shopping-cart/shopping-cart.service";
+import { RestaurantsService } from "../restaurants/restaurants.service";
+import { OrderService } from "../order/order.service";
+
 @NgModule({
   declarations: [InputComponent, RadioComponent, RatingComponent],
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
@@ -15,4 +20,12 @@ import { RatingComponent } from './rating/rating.component'
     CommonModule, FormsModule, ReactiveFormsModule]
 })
 
-export class SharedModule { }
+export class SharedModule {
+  // funcao que retorna um módulo com providers, que é basicamente a config do módulo + os providers que vamos importar aqui
+  static forRoot(): ModuleWithProviders {
+    return {
+      ngModule: SharedModule, // ja vai ter todas as configs necessárias para importar em outros lugares
+      providers: [ShoppingCartService, RestaurantsService, OrderService]
+    }
+  }
+}

@@ -1103,6 +1103,28 @@ Precisa informar na app.routes.ts que quer carregar um determinado componente ap
 
 # SHARED MODULE
 
+------------------------------------------------------------------
+# 80 Objeto ModuleWithProviders
+------------------------------------------------------------------
+O objeto ModuleWithProviders permite configurar um módulo diferente para determinadas situações.
+Ex: no módulo SharedModule, foi criado uma funcao estática:
+
+export class SharedModule {
+  // funcao que retorna um módulo com providers, que é basicamente a config do módulo + os providers que vamos importar aqui
+  static forRoot(): ModuleWithProviders {
+    return {
+      ngModule: SharedModule, // ja vai ter todas as configs necessárias para importar em outros lugares
+      providers: [ShoppingCartService, RestaurantsService, OrderService]
+    }
+  }
+}
+
+Em app.module estamos importando como "SharedModule.forRoot()" para que também venham os providers.
+Em order.module chamamos apenas "SharedModule".
+
+------------------------------------------------------------------
+# 81 Realizando Pré-Carregamento de Todos os Módulos (Preloading)
+------------------------------------------------------------------
 
 
 
