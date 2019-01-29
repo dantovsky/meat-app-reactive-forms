@@ -1041,13 +1041,74 @@ Cada componente será associado com "formControlName":
 foi criado um novo repositório Git:
 https://github.com/dantovsky/meat-app-reactive-forms
 
-
-// Comentários para commit
-Refatoração da app para Reactive Forms, uso de Validators e validação personalizada com Reactive Forms
-
 ------------------------------------------------------------------
-#73 e 74 Validators e Validação Personalizada com REACTIVE FORMS
+# 73 e 74 Validators e Validação Personalizada com REACTIVE FORMS
 ------------------------------------------------------------------
 // expressoes regulares
 emailPattern = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i
 numberPattern = /^[0-9]*$/
+
+------------------------------------------------------------------
+# 75 Módulos Angular
+------------------------------------------------------------------
+São itens de config do framework que servem para agregar:
+- componentes
+- diretivas
+- serviços
+- pipes
+Não só com o objetivo de organizar o code. Podemos decidir:
+- o que vai ser exportado para fora do módulo
+- como a injeção de dependencia vai ser config
+
+É possível configurar módulos que apenas certos users vão usar.
+Com módulos é podemos dividir a app em partes independentes e definir que essas partes não sejam carregadas de imediato,
+apenas quando requisitadas.
+É uma feature chamada "LAZY LOADING" ou "carregamento tardio".
+
+Tipos de Módulos
+- ROOT MODULE :: onde tem a declaracão dos componentes, que são usadas na app inteira.
+  É o modulo que faz o bootstrap da app. Apps pequenas pode ser suficiente ter somente este.
+
+- SHARED MODULES :: módulo compartilhado com todos os componentes que são usados por outros módulos da app
+
+- CORE MODULES :: com todos os serviços da app (não contem componentes, apenas serviços, ex: módolo Http)
+
+- FEATURE MODULES :: contem as implementações das funcionalidades da app.
+
+Para declarara um módulo precisamos da uma classe associada com o decorator @NgModule(), mas diferente do módulo raiz,
+este não tem bootstrap, e precisamos listar os componentes que queremos que sejam visíveis fora do módulo no atributo export.
+Sem isso os componentes são visíveis apenas internamente.
+
+@NgModule({
+  declarations: [...],
+  imports: [...],
+  providers: [...],
+  exports: [...] ---------------------| Componentes que serão visíveis de fora
+})
+export class MyModule {}
+
+LAZY LOADING
+O Router é que faz o Lazy Loading. Quando aciona uma certa rota é que ele vai realmente carregar um certo módulo nesse momento.
+Precisa informar na app.routes.ts que quer carregar um determinado componente apenas de forma tardia.
+
+# FEATURE MODULE :: Exemplo para o caso do AboutComponent
+1. em app.module.ts, retirar a referencia ao componente: import { AboutComponent } from './about/about.component' e retirar o AboutComponent de "declarations: [...]"
+2. em app.routes.ts, alterar a rota, de { path: 'about', component: AboutComponent } para { path: 'about', loadChildren: './about/about.module#AboutModule' }
+3. em about.module.ts deve importar o RouterModule e Routes para especificar a rota padrão, e importar o método RouterModule.forRoot(ROUTES)
+  import { RouterModule, Routes } from '@angular/router'
+  const ROUTES: Routes = [
+    { path: '', component: AboutComponent }
+  ]
+  @NgModule({imports: [RouterModule.forChild(ROUTES)]})
+
+# SHARED MODULE
+
+
+
+
+
+
+
+
+// Comentários para commit
+"# Aula 79 - Módulos em Angular, carregamento tardio (Lazy Loading), módulo compartilhado, feature lodule e criação de um Core Module com Serviços (este módulo será apagado na aula seguinte, estando no lugar a Adição de Serviços a um Módulo Compartilhado)"
