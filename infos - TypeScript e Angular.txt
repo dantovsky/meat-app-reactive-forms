@@ -1125,12 +1125,62 @@ Em order.module chamamos apenas "SharedModule".
 ------------------------------------------------------------------
 # 81 Realizando Pré-Carregamento de Todos os Módulos (Preloading)
 ------------------------------------------------------------------
+Embora possamos criar módulos com o carregamento tardio, podemos realizar um carregamento antecipado destes módulos, mas em background.
 
+Em app.module importar o PreloadAllModules:
+import { RouterModule, PreloadAllModules } from '@angular/router';
 
+E quando carregar as rotas (em imports), nós passamos a estratégia de carregamento:
+imports: [
+  ...
+  RouterModule.forRoot(ROUTES, { preloadingStrategy: PreloadAllModules })
+],
 
+------------------------------------------------------------------
+# 82 ANIMATIONS
+------------------------------------------------------------------
+importações:
+- @angular/animations
+  npm install --save @angular/animations@4.0.0 (--save para salvar nas dependências do projeto e versão 4.0.0 para manter a compatibilidade com os outros módulos que já tem no projeto)
+- polyfill (para browsers que não suportam a Web Animations API)
+- configurar o Browser Animations Module
 
+Entre dois estados (por ex: botão normal e esticado), pode-se fazer uma transição: duração/delay/aceleração
+
+@Component({
+  template: `<button [@stretch]="buttonState">Click</button>`
+  animations: [
+    trigger('stretch', [
+      state('normal', style({width: '40px'})),
+      state('stretched', style({width: '120px'})),
+      transition('normal => stretched', animate('300ms')),
+      transition('stretched => normal', animate('500ms'))
+    ])
+  ]
+})
+export class ButtonComponent { buttonState = 'normal' }
+
+O Angular fornece dois estados especiais:
+- WILDCARD* :: usado para representar qualquer estado
+- VOID :: usado para representar a transicao que nao está na arvore de componentes ainda ou que vai sair da arvore de componentes
+  Se tivermos duas transições identicas podemos usar o Wildcard:
+    transition('normal => stretched', animate('500ms')),
+    transition('stretched => normal', animate('500ms'))
+    // ----- passaria a ficar assim:
+    transition('* => *', animate('500ms'))
 
 
 
 // Comentários para commit
 "# Aula 79 - Módulos em Angular, carregamento tardio (Lazy Loading), módulo compartilhado, feature lodule e criação de um Core Module com Serviços (este módulo será apagado na aula seguinte, estando no lugar a Adição de Serviços a um Módulo Compartilhado)"
+ngModule: SharedModule e providers: [ShoppingCartService, RestaurantsService, OrderService]
+
+
+// -------- Possíveis Ocorrências ---------
+
+# Aplicação "quebrou" ao atualizar para a versão do Angular 5.0.5
+
+Olá Paulo, nova versão, novos bugs. :)
+Há uma issue (do Angular 5.0.5) sugerindo o downgrade da versão do RxJS para 5.5.2:
+https://github.com/angular/angular/issues/20752
+Vê se ajuda. Abraços.
