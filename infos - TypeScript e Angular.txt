@@ -1139,41 +1139,269 @@ imports: [
 ------------------------------------------------------------------
 # 82 ANIMATIONS
 ------------------------------------------------------------------
+https://www.w3.org/TR/css-transitions-1/#animatable-properties
+
 importações:
 - @angular/animations
   npm install --save @angular/animations@4.0.0 (--save para salvar nas dependências do projeto e versão 4.0.0 para manter a compatibilidade com os outros módulos que já tem no projeto)
 - polyfill (para browsers que não suportam a Web Animations API)
+  npm install --save web-animations-js
 - configurar o Browser Animations Module
 
+Próximos passos:
+- configurar o polyfill.js
+  import 'web-animations-js/web-animations.min.js'
+- importar o Browser Animations Module no módulo principal
+  import { BrowserAnimationsModule } from "@angular/platform-browser/animations"
+  imports: [
+    ...
+    BrowserAnimationsModule,
+    ...
+  ]
+
+
 Entre dois estados (por ex: botão normal e esticado), pode-se fazer uma transição: duração/delay/aceleração
+
+import { trigger, state, style, transition, animate } from '@angular/animations'
 
 @Component({
   template: `<button [@stretch]="buttonState">Click</button>`
   animations: [
-    trigger('stretch', [
+    trigger('stretch', [ -----------------------------------| 1º param é o nome para a funcao trigger
       state('normal', style({width: '40px'})),
       state('stretched', style({width: '120px'})),
       transition('normal => stretched', animate('300ms')),
       transition('stretched => normal', animate('500ms'))
-    ])
+    ]) -----------------------------------------------------| 2º param é um array de estados
   ]
 })
 export class ButtonComponent { buttonState = 'normal' }
 
 O Angular fornece dois estados especiais:
 - WILDCARD* :: usado para representar qualquer estado
-- VOID :: usado para representar a transicao que nao está na arvore de componentes ainda ou que vai sair da arvore de componentes
+- VOID :: usado para representar a transicao que nao está na arvore de componentes (não está no DOM) ainda ou que vai sair da arvore de componentes
   Se tivermos duas transições identicas podemos usar o Wildcard:
     transition('normal => stretched', animate('500ms')),
     transition('stretched => normal', animate('500ms'))
     // ----- passaria a ficar assim:
     transition('* => *', animate('500ms'))
 
+# Definindo um Snackbar
+Ex: https://www.w3schools.com/howto/howto_js_snackbar.asp
+
+Criei um componente dentro de shared/messages/
+E:\Dropbox\Dantiii\Cursos\Udemy\angular\meat-app-reactive-forms (master -> origin)
+λ ng g c shared/messages/scackbar --spec=false
+
+Após isto, em shared.module.ts será importado automaticamente este novo componente filho,
+mas é preciso especificá-lo na lista de exports.
+
+Em snack.component.ts ::
+import { Component, OnInit } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations'
+@Component({
+  selector: 'mt-scackbar',
+  templateUrl: './scackbar.component.html',
+  styleUrls: ['./scackbar.component.css'],
+  animations: [
+    trigger('snack-visibility', [
+      state('hidden', style({
+        opacity: 0,
+        bottom: 0
+      })),
+      state('visible', style({
+        opacity: 1,
+        bottom: '30px'
+      })),
+      transition('hidden => visible', animate('1100ms 0s ease-in')),
+      transition('visible => hidden', animate('1100ms 0s ease-out'))
+    ])
+  ]
+})
+export class ScackbarComponent implements OnInit {
+  message: string = 'Hello there!'
+  snackVisibility: string = 'hidden'
+  constructor() { }
+  ngOnInit() {
+  }
+  // para testar a anumação: criamos um botão no template: <button (click)="toggleSnack()">Click me</button>
+  // toggleSnack() {
+  //   this.snackVisibility = this.snackVisibility === 'hidden' ? 'visible' : 'hidden'
+  // }
+}
+
+Em snack.component.html ::
+<button (click)="toggleSnack()">Click me</button>
+<div class="snackbar" [@snack-visibility]="snackVisibility">
+  {{message}}
+</div>
+
+Em snack.component.css ::
+.snackbar {
+  min-width: 250px;
+  margin-left: -125px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 2px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  left: 50%;
+  bottom: 30px;
+}
+
+# Aula 86 - Usando Observable com a snackbar
+
+Foi criado um arquivo notification.sevice.ts dentro da pasta messages ::
+import { EventEmitter } from "@angular/core";
+export class NotificationService {
+  notifier = new EventEmitter<string>()
+
+  // Funcao que recebe str e passa essa msg para o metodo emit() do notifier
+  notify(message: string) {
+    this.notifier.emit(message)
+  }
+}
+
+Depois, em shared.module.ts foi importado o componente NotificationService e colocado na lista de providers.
+
+Em shopping-cart.service.ts fez ::
+- import de NotificationService
+- import de Injectable (porque esse componente vai receber algo)
+- colocado o decorator @Injectable()
+- na class, cirou o construtor inicializando o serviço de notificacoes :: constructor(private notificationService: NotificationService) { }
+- na funcao addItem() :: this.notificationService.notify(`Você adicionou o item ${item.name}`)
+- na fucnao removeItem() :: this.notificationService.notify(`Você removeu o item ${item.menuItem.name}`)
+
+Em snackbar.component.ts ::
+- import { Observable } from 'rxjs/Observable'
+- import 'rxjs/add/observable/timer'
+- em @ngOnInit() ::
+  ngOnInit() {
+    // inscrever-se para as notificações
+    this.notificationService.notifier.subscribe(message => {
+      this.message = message
+      this.snackVisibility = 'visible'
+      Observable.timer(3000).subscribe(timer => this.snackVisibility = 'hidden')
+    })
+  }
+
+Contudo, com essa configuração o comportamento do snackbar ainda não está aceitável, sendo confuso quando adicionamos em vários itens
+Será resoldifo com os seguintes operadores:
+
+# Operadores DO e SWITCHAP
+- import dos dois operadores:
+  import 'rxjs/add/operator/do'
+  import 'rxjs/add/operator/switchMap'
+- refatoração do ngOnInit()
+  ngOnInit() {
+    // inscrever-se para as notificações
+    this.notificationService.notifier
+      .do(message => {
+        this.message = message
+        this.snackVisibility = 'visible'
+      }).switchMap(message => Observable.timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
+      .subscribe(timer => this.snackVisibility = 'hidden')
+    // Observable.timer(3000).subscribe(timer => this.snackVisibility = 'hidden')
+  }
+
+------------------------------------------------------------------
+# 88 Animação com Void e Estilos em Transições
+------------------------------------------------------------------
+Em restaurant.component.ts foi criado uma animação que sai do estado VOID para o estado criado
+a que chamamos "ready":
+import { Component, OnInit, Input } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations' --------------| adicao dos imports para a animação
+import { Restaurant } from './restaurant.model'
+@Component({
+  selector: 'mt-restaurant',
+  templateUrl: './restaurant.component.html',
+  animations: [ -------------------------------------------------------------------------------| implementacao do trigger, estado e transições da animação
+    trigger('restaurantAppeared', [
+      state('ready', style({ opacity: 1 })),
+      transition('void => ready', [
+        style({ opacity: 0, transform: 'translate(-30px, -10px)' }),
+        animate('500ms 0s ease-in-out')
+      ])
+    ])
+  ]
+})
+export class RestaurantComponent implements OnInit {
+  restaurantState = 'ready' -------------------------------------------------------------------| atributo de estado
+  @Input() restaurant: Restaurant
+  constructor() { }
+  ngOnInit() {
+  }
+}
+
+Em restaurant.component.html:
+<a [routerLink]="['/restaurants', restaurant.id]">
+  <div class="place-info-box" [@restaurantAppeared]="restaurantState"> ------------------------| Associação do trigger ao elemento HTML e associar a trigger ao seu estado guardado na propriedade restaurantState (o arroba @ indica que é uma trigger)
+    <span class="place-info-box-icon"><img [src]="restaurant.imagePath" /></span>
+    <div class="place-info-box-content">
+      <span class="place-info-box-text">{{restaurant.name}}</span>
+      <span class="place-info-box-star"><i class="fa fa-star"></i> {{restaurant.rating}}</span>
+      <span class="place-info-box-detail">{{restaurant.category}}</span>
+      <span class="place-info-box-detail">{{restaurant.deliveryEstimate}}</span>
+    </div>
+    <!-- /.info-box-content -->
+  </div>
+</a>
+
+------------------------------------------------------------------
+# 90 Animação com Keyframes
+------------------------------------------------------------------
+São animações que contêm vários "marcos ou passos", onde cada passo vai ter um estilo de CSS diferente.
+Com keyframes é possível criar animações mais complexas do que uma animação tradicional.
+
+-> keyframes é passado como 2º argumento da funcao animate
+-> a funcao keyframes recebe um array de estilos
+
+@Component({
+  animations: [
+    trigger('tgr', [
+      ...
+      transition('st1 => st2', [
+      animate('500ms 0s ease-in-out', keyframes([
+        style({transform: 'transform(0px, 0px)', offset:0})
+        style({transform: 'transform(100px, 0px)', offset:0.6})
+        style({transform: 'transform(140px, -30px)', offset:1})
+      ]))
+      ])
+    ])
+  ]
+})
+
+Nestes outro exemplo, variam a opacidade e largura ::
+
+@Component({
+  animations: [
+    trigger('tgr', [
+      ...
+      transition('st1 => st2', [
+      animate('500ms 0s ease-in-out', keyframes([
+        style({opacity: 0, width: '100px', offset:0})
+        style({opacity: 0.8, width: '120px', offset:0.8})
+        style({opacity: 1, width: '100px', offset:1})
+      ]))
+      ])
+    ])
+  ]
+})
 
 
-// Comentários para commit
-"# Aula 79 - Módulos em Angular, carregamento tardio (Lazy Loading), módulo compartilhado, feature lodule e criação de um Core Module com Serviços (este módulo será apagado na aula seguinte, estando no lugar a Adição de Serviços a um Módulo Compartilhado)"
-ngModule: SharedModule e providers: [ShoppingCartService, RestaurantsService, OrderService]
+
+
+
+
+
+
+
+
+
+// -------- Comentários para commit ---------
+# Aula 92 - Intro a animações, install modulo de animações, definindo um snackbar, usando Observable com snackbar, Animação com Void e Estilos em Transições, Animação com Keyframes.
 
 
 // -------- Possíveis Ocorrências ---------

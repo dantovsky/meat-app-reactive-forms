@@ -12,11 +12,13 @@ import { RatingComponent } from './rating/rating.component'
 import { ShoppingCartService } from "../restaurant-detail/shopping-cart/shopping-cart.service";
 import { RestaurantsService } from "../restaurants/restaurants.service";
 import { OrderService } from "../order/order.service";
+import { ScackbarComponent } from './messages/scackbar/scackbar.component';
+import { NotificationService } from "./messages/notification.service";
 
 @NgModule({
-  declarations: [InputComponent, RadioComponent, RatingComponent],
+  declarations: [InputComponent, RadioComponent, RatingComponent, ScackbarComponent],
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  exports: [InputComponent, RadioComponent, RatingComponent,
+  exports: [InputComponent, RadioComponent, RatingComponent, ScackbarComponent,
     CommonModule, FormsModule, ReactiveFormsModule]
 })
 
@@ -25,7 +27,7 @@ export class SharedModule {
   static forRoot(): ModuleWithProviders {
     return {
       ngModule: SharedModule, // ja vai ter todas as configs necessárias para importar em outros lugares
-      providers: [ShoppingCartService, RestaurantsService, OrderService]
+      providers: [ShoppingCartService, RestaurantsService, OrderService, NotificationService]
     }
   }
 }

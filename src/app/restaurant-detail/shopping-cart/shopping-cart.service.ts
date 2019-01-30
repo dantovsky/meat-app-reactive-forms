@@ -1,8 +1,15 @@
 import { CartItem } from "./cart-item.model";
 import { MenuItem } from "../menu-item/menu-item.model";
+import { Injectable } from "@angular/core";
+import { NotificationService } from "../../shared/messages/notification.service";
 
+// Todo serviço que vai receber algo, precisa ser marcado com @Injectable
+@Injectable() // para receber as notificações do snackbar
 export class ShoppingCartService {
   items: CartItem[] = []
+
+  // para implementar notificações do snackbar
+  constructor(private notificationService: NotificationService) { }
 
   clear() {
     this.items = []
@@ -17,6 +24,9 @@ export class ShoppingCartService {
       // add o novo item (a quantidade efault = 1)
       this.items.push(new CartItem(item))
     }
+
+    // notificao com snackbar
+    this.notificationService.notify(`Você adicionou o item ${item.name}`)
   }
 
   increaseQty(item: CartItem) {
@@ -35,6 +45,9 @@ export class ShoppingCartService {
   removeItem(item: CartItem) {
     // remove 1 elemento do array (informa indice que quer começar e a quantidade que quer remover)
     this.items.splice(this.items.indexOf(item), 1)
+
+    // notificao com snackbar
+    this.notificationService.notify(`Você removeu o item ${item.menuItem.name}`)
   }
 
   total(): number {
