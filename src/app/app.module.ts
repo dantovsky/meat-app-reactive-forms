@@ -4,6 +4,7 @@ import { HttpModule } from '@angular/http';
 import { RouterModule, PreloadAllModules } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations"
+import { LocationStrategy, HashLocationStrategy } from '@angular/common'
 
 import { ROUTES } from './app.routes'
 
@@ -19,6 +20,7 @@ import { MenuItemComponent } from './restaurant-detail/menu-item/menu-item.compo
 import { ReviewsComponent } from './restaurant-detail/reviews/reviews.component'
 import { OrderSummaryComponent } from './order-summary/order-summary.component';
 import { SharedModule } from "./shared/shared.module";
+import { NotFoundComponent } from './not-found/not-found.component';
 // import { CoreModule } from './core/core.module' // criado somente numa aula e substituido pela Adição de Serviços do Módulo Compartilhado (ver aula 80)
 // import { ShoppingCartService } from "./restaurant-detail/shopping-cart/shopping-cart.service";
 // import { OrderComponent } from './order/order.component';
@@ -45,6 +47,7 @@ import { SharedModule } from "./shared/shared.module";
     MenuItemComponent,
     ReviewsComponent,
     OrderSummaryComponent,
+    NotFoundComponent,
   ],
   imports: [
     BrowserModule,
@@ -53,7 +56,7 @@ import { SharedModule } from "./shared/shared.module";
     SharedModule.forRoot(),
     RouterModule.forRoot(ROUTES, { preloadingStrategy: PreloadAllModules })
   ],
-  providers: [{ provide: LOCALE_ID, useValue: 'pt-BR' }],
+  providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }, { provide: LOCALE_ID, useValue: 'pt-BR' }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

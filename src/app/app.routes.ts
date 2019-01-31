@@ -7,6 +7,7 @@ import { MenuComponent } from "./restaurant-detail/menu/menu.component";
 import { ReviewsComponent } from "./restaurant-detail/reviews/reviews.component";
 // import { OrderComponent } from "./order/order.component"
 import { OrderSummaryComponent } from "./order-summary/order-summary.component";
+import { NotFoundComponent } from "./not-found/not-found.component";
 
 // Nos detalhes de um restaurante é utilizado rotas de navegações filhas, para o funcionamento do submenu (menu e avaliações) existente na página
 export const ROUTES: Routes = [
@@ -22,5 +23,6 @@ export const ROUTES: Routes = [
   },
   { path: 'order', loadChildren: './order/order.module#OrderModule' },
   { path: 'order-summary', component: OrderSummaryComponent },
-  { path: 'about', loadChildren: './about/about.module#AboutModule' }
+  { path: 'about', loadChildren: './about/about.module#AboutModule' },
+  { path: '**', component: NotFoundComponent }
 ]

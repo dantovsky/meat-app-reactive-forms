@@ -19,30 +19,30 @@ export class RestaurantsService {
 
   }
 
-  restaurants(): Observable<Restaurant[]>{
+  restaurants(): Observable<Restaurant[]> {
     return this.http.get(`${MEAT_API}/restaurants`)
-    .map(response => response.json())
-    .catch(ErrorHandler.handleError)
+      .map(response => response.json())
+      .catch(ErrorHandler.handleError)
   }
 
   // retornar um restaurant por ID
-  restaurantById(id: string): Observable<Restaurant>{
+  restaurantById(id: string): Observable<Restaurant> {
     return this.http.get(`${MEAT_API}/restaurants/${id}`)
-    .map(response => response.json())
-    .catch(ErrorHandler.handleError)
+      .map(response => response.json())
+      .catch(ErrorHandler.handleError)
   }
 
   // trazer as reviews de cada restaurante
-  reviewsOfRestaurant(id: string): Observable<any>{
+  reviewsOfRestaurant(id: string): Observable<any> {
     return this.http.get(`${MEAT_API}/restaurants/${id}/reviews`)
-    .map(response => response.json())
-    .catch(ErrorHandler.handleError)
+      .map(response => response.json())
+      .catch(ErrorHandler.handleError)
   }
 
-  menuOfRestaurant(id: string): Observable<MenuItem[]>{
+  menuOfRestaurant(id: string): Observable<MenuItem[]> {
     return this.http.get(`${MEAT_API}/restaurants/${id}/menu`)
-    .map(response => response.json())
-    .catch(ErrorHandler.handleError)
+      .map(response => response.json())
+      .catch(ErrorHandler.handleError)
   }
 }
 

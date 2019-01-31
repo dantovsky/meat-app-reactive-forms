@@ -1390,10 +1390,59 @@ Nestes outro exemplo, variam a opacidade e largura ::
   ]
 })
 
+------------------------------------------------------------------
+# 93 Rotas com Wildcard (Criando Página Não Encontrada)
+------------------------------------------------------------------
+Criamos um componente com o template da página 404
+Nas rotas (app.routes.ts), adicionamos o caminho para "wildcard root" (**) => para indicar que nenhuma rota foi encontrada
+{ path: '**', component: NotFoundComponent }
 
+------------------------------------------------------------------
+# 94 Construindo a Aplicação (BUILD)
+------------------------------------------------------------------
 
+- Build de desenvolvimento: compilação em tempo de exibição -> "just in time" (contece de forma dinâmica, dentro do browser) ::
+  ng build ---------------------| constroi a app ainda com as configs de desenvolvimento
 
+- Build de produção: compilação "ahead of time" (acontece antes de a gente servir os recursos para o browser, acontece de forma estática)
+  ng build --prod --------------| build de produção (maneira reduzida)
 
+# Angular 2 / 4 / 5 - Set base href dynamically
+https://stackoverflow.com/questions/38112891/angular-2-4-5-set-base-href-dynamically
+
+------------------------------------------------------------------
+# 95 Modificando a Estratégia de Navegação (Hash)
+------------------------------------------------------------------
+No ambiente de produção, ao tentar aceder a uma URL diretamente, recebemos um err 404, ex:
+http://localhost/dashboard/meat-app/restaurants/bread-bakery/menu
+
+Para corrigir isso, basta usar o modelo de URL com o # (hash), onde este símbolo irá dizer para o servidor
+para ignorar tudo o que tem após ele, sendo assim, é servido o index.html que faz o bootstrap da app, o Angular vai
+olhar a URL, da URL bate a rota e da rota bate o componente, onde então é exibido o componente.
+
+Em app.module.ts ::
+import { LocationStrategy, HashLocationStrategy } from '@angular/common'
+providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }]
+
+# Testar a app :: RUN A WEB SERVER FROM ANY FOLDER
+https://flaviocopes.com/local-web-server/
+
+If you use Node.js and you have installed npm already, run
+npm install -g http-server
+and then run http-server in the folder you want to expose through your server.
+
+By default it will start the server on port 8080, but you can change it using the -p flag
+(see more options by running http-server --help).
+
+If you use Python and have it installed, just run (to start a local server on port 8080)
+(Python 2) :: python -m SimpleHTTPServer 8080
+(Python 3) :: python -m http.server 8080
+
+If you use PHP and you run a modern version of it, run:
+php -S localhost:8080
+
+# Também é possível servir a app com as configs de produção :: (subir um servidor de desenvolvimento com as configs de produção)
+ng serve --prod
 
 
 
@@ -1401,7 +1450,10 @@ Nestes outro exemplo, variam a opacidade e largura ::
 
 
 // -------- Comentários para commit ---------
-# Aula 92 - Intro a animações, install modulo de animações, definindo um snackbar, usando Observable com snackbar, Animação com Void e Estilos em Transições, Animação com Keyframes.
+# Aula 96 - Rotas com Wildcard (Criando Página Não Encontrada). Gerar build da app. Modificando a Estratégia de Navegação (Hash). Presonalizando o build com variáveis de ambiente (--dev, --prod)
+
+
+
 
 
 // -------- Possíveis Ocorrências ---------

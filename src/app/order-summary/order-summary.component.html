@@ -9,9 +9,9 @@
     <p><b>Avalie</b> sua experiência:</p>
     <p>
       <!-- Se quiser fazer um POST só precisaria no "rated" colocar um evento do componente que chama um serviço e o serviço faz o POST da avaliação -->
-      <mt-rating (rated)="rated = true"></mt-rating>
+      <mt-rating (rated)="rate()"></mt-rating>
     </p>
-    <p [hidden]="!rated">Obrigado pela sua avaliação!</p>
+    <p *ngIf="rated">Obrigado pela sua avaliação!</p>
   </div>
 
 </section>
