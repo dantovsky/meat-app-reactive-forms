@@ -1444,13 +1444,97 @@ php -S localhost:8080
 # Também é possível servir a app com as configs de produção :: (subir um servidor de desenvolvimento com as configs de produção)
 ng serve --prod
 
+------------------------------------------------------------------
+# Deploy de uma Aplicação
+------------------------------------------------------------------
+
+# 97 Deploy no Apache HTTP Server
+Se o build foi gerado com o comando "ng build --prod":
+Basta colocar os arquivos da pasta dist na raiz do servidor.
+
+# 98 Deploy Usando a Estratégia de Caminho - Apache HTTP Server
+Nessa estratégia, vai exigir que a gente configure o Apache para retornar o index.html quando ele não encontrar um recurso que a gente pedir.
+
+Removeu-se, portanto, a hash (aula 95) e coloca-se uma regra no:
+- .htaccess
+- ou então no arquivo httpd.conf (C:\xampp\apache\conf). ----------| precisa ter o rewrite_module habilitado (LoadModule rewrite_module modules/mod_rewrite.so)
+  Foi adicionado antes da tag de término </Directory>
+No caso de servidores, penso que apenas os server VPS disponibilizam o acesso a esta configuração do Apache.
+O site do Apache recomenda que seja no arquivo httpd.conf, pois sendo no .htaccess perde um pouco de desempenho.
+
+Deployment
+https://angular.io/guide/deployment
+
+-> Apache: add a rewrite rule to the .htaccess file as shown (https://ngmilk.rocks/2015/03/09/angularjs-html5-mode-or-pretty-urls-on-apache-using-htaccess/):
+RewriteEngine On
+    # If an existing asset or directory is requested go to it as it is
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
+    RewriteRule ^ - [L]
+    # If the requested resource doesn't exist, use index.html
+RewriteRule ^ /index.html
+
+-> Nginx: use try_files, as described in Front Controller Pattern Web Apps, modified to serve index.html:
+try_files $uri $uri/ /index.html;
+
+-> IIS: add a rewrite rule to web.config, similar to the one shown here:
+<system.webServer>
+  <rewrite>
+    <rules>
+      <rule name="Angular Routes" stopProcessing="true">
+        <match url=".*" />
+        <conditions logicalGrouping="MatchAll">
+          <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+          <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+        </conditions>
+        <action type="Rewrite" url="/index.html" />
+      </rule>
+    </rules>
+  </rewrite>
+</system.webServer>
+GitHub Pages: you can't directly configure the GitHub Pages server, but you can add a 404 page. Copy index.html into 404.html. It will still be served as the 404 response, but the browser will process that page and load the app properly. It's also a good idea to serve from docs/ on master and to create a .nojekyll file
+
+-> Firebase hosting: add a rewrite rule.
+"rewrites": [ {
+  "source": "**",
+  "destination": "/index.html"
+} ]
+
+# 99 Deploy Usando o arquivo htaccess - Apache HTTP Server
+- No arquivo httpd.conf a opção AllowOverride precisa estar como "AllowOverride All"
+- criar um arquivo .htaccess na pasta raiz da app e colar a regra no arquivo:
+  RewriteEngine On
+      # If an existing asset or directory is requested go to it as it is
+      RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
+      RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
+      RewriteRule ^ - [L]
+      # If the requested resource doesn't exist, use index.html
+  RewriteRule ^ /index.html
+
+# 100 Modificando o base-href para Deploys em Subdiretórios (Seção 11, aula 100)
+Exemplo para ter a app dentro de uma pasta chamada meat (localhost/meat/)
+- ng build --prod --bh=/meat/ ----------------------| versão abreviada
+- ng build --prod --base-href /meat/ ---------------| versão completa
+  Neste caso, para que os caminhos nunca quebrem, deve mudar este item na regra do .htaccess ::
+  Em vez de
+  RewriteRule ^ /index.html
+  use
+  RewriteRule ^ /meat/index.html
+
+
+
+
+
+
+
+
 
 
 
 
 
 // -------- Comentários para commit ---------
-# Aula 96 - Rotas com Wildcard (Criando Página Não Encontrada). Gerar build da app. Modificando a Estratégia de Navegação (Hash). Presonalizando o build com variáveis de ambiente (--dev, --prod)
+# Aula 101 - Deploy no Apache HTTP Server, deploy usando a estratégia de caminho (path, uma opção alternativa à estratégia de hash), deploy usando o arquivo .htaccess e modificação do base-href para deploy em subdiretórios. 
 
 
 
