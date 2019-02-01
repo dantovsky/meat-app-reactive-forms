@@ -957,12 +957,16 @@ dentro de um componente.
 // O form é representado por FormGroup que vai agrupar um ou mais campos dentro dele
 // Pra ajudar nessa tarefa o Angula disponibiliza o obj FormBuilder, que ajuda na criação dos campos e outros grupos.
 // FormBuilder tem um método chamado group({}) onde recebe um obj com propriedades representando cada campo do form.
+
+Importações no componente ::
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
+
 @Component({...})
 export class UserComponent implements OnInit {
 
   userForm: FormGroup
 
-  constructor(private fb: FormBuiler) {}
+  constructor(private fb: FormBuiler) {} ------------------------| Injetar uma instância de FormBuilder
 
   ngOnInit() {
     this.userForm = this.fb.group({
@@ -1521,20 +1525,77 @@ Exemplo para ter a app dentro de uma pasta chamada meat (localhost/meat/)
   use
   RewriteRule ^ /meat/index.html
 
+------------------------------------------------------------------
+# 104 Observable ValueChanges de Reactive Forms
+------------------------------------------------------------------
+O FormControl tem uma prop chamada valuChanges (que é um Observable)
+Podemos subscrever para que sempre que for digitado um valor no campo (quando o valor mudar)
+irá gerar um evento e quem estiver inscrito no valuChanges vai receber uma notificação.
 
+------------------------------------------------------------------
+# 105 Operadores debounceTime e distinctUntilChanged
+------------------------------------------------------------------
+Essa implementação foi para que ao digitar um termo de pesquisa o sistema espere 500ms
+entre um termo digitado e outro para realizar a consulta ao servidor
+e entre dois termos digitados, ele só envia a nova consulta se os termos forem diferentes (dinstintos) .
 
+// debounceTime(500) :: só vai deixar emitir um evento se a diferença entre dois eventos for maior que o tempo informado (milissegundos)
+// distictiUltilChanged() :: vai permitir apenas as mensagens que são diferentes umas das outras (se a mensagem seguinte for igual a da anterior, ele não vai mais subscrever a nova mensagem)
+//
+// do(function(searchTerm) { console.log(searchTerm) }) :: pode ser usado para debuggar no console o que o sistema está enviando para fazer o pedido a "API Server"
+//
+// switchMap() :: quando chega uma nova mensagem, o swichMap() faz o unsubsscribe do anterior. O switchMap irá resolver problemas entre vários requests que demoram tempos diferentes (muito comum com o uso da internet)
 
+------------------------------------------------------------------
+# 106 Prevenindo a interrupção do Observable ValueChanges
+------------------------------------------------------------------
+Como na input de pesquisa temos uma stream em aberto, pode acontecer um erro no back-end, esse erro vai subir e quebrar
+o Observable ValueChanges (vai parar de funcionar).
 
+O que fazer?
+Utilização de catch no Observable que faz a query via HTTP, e nesse catch temos que capturar e tratar o valor.
+A função que se passa para o catch temos que devolver um outro Observable, e nesse outro Observable a gente escolhe o que vai retornar.
+Podemos:
+- logar o erro
+- mandar msg para o user
+- e então, retornar dados vazios nessa query
 
+Imports ::
+import 'rxjs/add/operator/catch'
+import 'rxjs/add/operator/from' // usado para criar uma string a partir de um array
+import { Observable } from 'rxjs/Observable'
 
+// Se inscrever no atributo valueChanges para ouvir o que o user está digitando
+// em vez de fazer um subscribe para pegar o termo e depois fazer outro subscribe
+// vamos utilizar o switchMap para poder trocar o Observable e fazer o subscribe uma vez só
+//
+// debounceTime(500) :: só vai deixar emitir um evento se a diferença entre dois eventos for maior que o tempo informado (milissegundos)
+// distictiUltilChanged() :: vai permitir apenas as mensagens que são diferentes umas das outras (se a mensagem seguinte for igual a da anterior, ele não vai mais subscrever a nova mensagem)
+//
+// do(function(searchTerm) { console.log(searchTerm) }) :: pode ser usado para debuggar no console o que o sistema está enviando para fazer o pedido a "API Server"
+//
+// switchMap() :: quando chega uma nova mensagem, o swichMap() faz o unsubsscribe do anterior. O switchMap irá resolver problemas entre vários requests que demoram tempos diferentes (muito comum com o uso da internet)
+//
+// catch() :: vamos usar um catch no observable de retorno do swichMap para não deixar o erro estourar e quebrar o ValueChange
 
-
+ngOnInit() {
+  this.searchControl.valueChanges
+    .debounceTime(500)
+    .distinctUntilChanged()
+    .switchMap(searchTerm =>
+      this.restaurantsService
+        .restaurants(searchTerm)
+        .catch(error => Observable.from([]))) ------------------------| adicionamos o catch dentro do swichMap() para tratar o erro e enviar um array vazio [] quando encontrar um erro
+    .subscribe(restaurants => this.restaurants = restaurants)
+}
 
 
 
 
 // -------- Comentários para commit ---------
-# Aula 101 - Deploy no Apache HTTP Server, deploy usando a estratégia de caminho (path, uma opção alternativa à estratégia de hash), deploy usando o arquivo .htaccess e modificação do base-href para deploy em subdiretórios. 
+# Aula 106 - Implementação da barra de busca por restaurantes. Utilização de Observable ValuChanges de Reactive Forms. Uso dos operadores debounceTime e distinctUntilChanged. Prevenção da interrupção do Observable ValuChanges.
+
+Deploy no Apache HTTP Server, deploy usando a estratégia de caminho (path, uma opção alternativa à estratégia de hash), deploy usando o arquivo .htaccess e modificação do base-href para deploy em subdiretórios.
 
 
 
