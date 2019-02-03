@@ -1,7 +1,7 @@
 # MEAT-APP Refatorado de Template Forms para Reactive Forms
 Este repositório continua o curso de Angular: App Angular (MEAT App) do Curso Construindo Aplicações Web Com o Novo Angular (4, 5 e 6)
-Versão do repositório com Template Forms: https://github.com/dantovsky/meat-app 
-Neste repositório, as novas modificações são a partir da aula 71. 
+Versão do repositório com Template Forms: https://github.com/dantovsky/meat-app
+Neste repositório, as novas modificações são a partir da aula 71.
 
 # Iniciar a Aplicação MEAT-APP (meat-app-reative-forms)
 
@@ -11,7 +11,9 @@ Proparação do ambiente
 
 Na pasta do projeto
 - npm install ------------------------------------| instalar as dependências
-- npm install -g json-server ---------------------| lib emular um API server
+- npm install -g json-server ---------------------| lib emular um API server (processo antigo, deixado de usar a partir da aula 110)
+- node istall nodemon -g -------------------------| instalcação do nodemon (monitora os arquivos de uma pasta e executa um server, restartando automaticamente sempre após uma modificação)
+- nodemon --watch backend backend/dist/server.js ----------------------| vai monitorar os arquivos da pasta "backend" e vai executar o script em "backend/dist/server.js"
 
 Rodar a aplicação
 - ng serve ou npm start --------------------------| start Angular server

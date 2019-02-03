@@ -1743,18 +1743,203 @@ Dependências novas ::
     "webdriver-manager": "12.0.6"
   }
 
+------------------------------------------------------------------
+# 109 Personalizando o Backend
+------------------------------------------------------------------
+https://github.com/typicode/json-server
+https://expressjs.com/en/starter/hello-world.html
 
+const jsonServer = require('json-server')
+const server = jsonServer.create() ---------------------------------| server é uma aplicação Express
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
 
+// Set default middlewares (logger, static, cors and no-cache)
+server.use(middlewares)
 
+// Add custom routes before JSON Server router
+server.get('/echo', (req, res) => {
+  res.jsonp(req.query)
+})
+
+// To handle POST, PUT and PATCH you need to use a body-parser
+// You can use the one used by JSON Server
+server.use(jsonServer.bodyParser)
+server.use((req, res, next) => { ------------------------------------| callback de três params => middleware (pode ler os dados do request, pode fazer uma tarefa e ao final pode chamar a função next(), passando para o "próximo da fila", os outros callbacks)
+  if (req.method === 'POST') {
+    req.body.createdAt = Date.now()
+  }
+  // Continue to JSON Server router
+  next()
+})
+
+// Use default router
+server.use(router)
+server.listen(3000, () => {
+  console.log('JSON Server is running')
+})
+
+// - - -
+
+server.use() -------------------------------------------------------| especifica que o callback vai funcionar para qualquer método HTTP e para qualquer rota caso retire o parametro da rota
+
+// - - -
+
+// Ficamos apenas com esse código ::
+const jsonServer = require('json-server')
+const server = jsonServer.create()
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
+
+// Set default middlewares (logger, static, cors and no-cache)
+server.use(middlewares)
+
+// To handle POST, PUT and PATCH you need to use a body-parser
+// You can use the one used by JSON Server
+server.use(jsonServer.bodyParser)
+
+// Use default router
+server.use(router)
+server.listen(3000, () => {
+  console.log('JSON Server is running')
+})
 
 // -------- Comentários para commit ---------
 # Aula 108 - Refactoring da app :: retirou-se o HttpModule e colocou o HttpClientModule, e de Http para HttpClient, todos importados from @angular/common/http. O import Response foi trocado por HttpErrorResponse. Não é necessário mais usar o map() nas funções porque agora já retornam um JSON.
 
 Deploy no Apache HTTP Server, deploy usando a estratégia de caminho (path, uma opção alternativa à estratégia de hash), deploy usando o arquivo .htaccess e modificação do base-href para deploy em subdiretórios.
 
+------------------------------------------------------------------
+# 110 Utilizando HTTPS e TypeScript
+------------------------------------------------------------------
+1) alteramos a extensão do arquivo para server.ts
+2) Quando temos uma app em TypeScript, precisamos ter um arquivo com as configs do compilador
+- criar na pasta do "backend" o arquivo: tsconfig.json
+
+Conteúdo do arquivo tsconfig.json
+{
+  "compileOnSave": true, ------------------------------| compila automaticamente para JavaScript ao salvar
+  "compilerOptions": { --------------------------------| indica a pasta onde ficarão os arquivos JS compilados (dir de saída)
+    "outDir": "dist"
+  }
+}
+
+// Se estivermos num IDE que nao tem suporte ao compileOnSave podemos fazer
+tsc -w
+no diretório do backend
+
+// - - - Versão em TS ::
+
+import * as  jsonServer from 'json-server'
+import { Express } from 'express' // tipo que representa uma app em Express
+
+// módulo para configurar o HTTPS, capaz de ler o certificado e a privatekey
+import * as fs from 'fs' // file system
+import * as https from 'https'
+
+const server: Express = jsonServer.create()
+const router = jsonServer.router('db.json')
+const middlewares = jsonServer.defaults()
+
+// Set default middlewares (logger, static, cors and no-cache)
+server.use(middlewares)
+
+// To handle POST, PUT and PATCH you need to use a body-parser
+// You can use the one used by JSON Server
+server.use(jsonServer.bodyParser)
+
+// Use default router
+server.use(router)
+
+// antes de chamar o método listen(), vamos 1º obter uma ref ao cert e a key
+const options = {
+  cert: fs.readFileSync('./backend/keys/cert.pem'),
+  key: fs.readFileSync('./backend/keys/key.pem')
+}
+
+https.createServer(options, server).listen(3001, () => {
+  console.log('JSON Server is running on https://localhost:3001')
+})
+
+/// - - - Automatizando o restart do server, quando ocorre mudança
+- instalar o pacote nodemon
+  node istall nodemon -g
+
+- rodar o nodemon para monitorar e automatizar o server
+  nodemon --watch backend backend/dist/server.js ----------------------| vai monitorar os arquivos da pasta "backend" e vai executar o script em "backend/dist/server.js"
+
+------------------------------------------------------------------
+# 111 Implementando a Rota de Login
+------------------------------------------------------------------
+Postman :: para testar os métodos HTTP
+https://www.getpostman.com/downloads/
+
+Status de erros
+400 :: Bad Request
+401 :: não autorizado (tentativa de acesso a uma URL protegida por login)
+403 :: autenticação inválida; quando é válida mas o user não tem permissão para aceder a tal recurso
+422 :: comum em API Rest: Unprocessable Entity
+
+Para identificar o user vai ser usado o Token JWT
+
+------------------------------------------------------------------
+# 112 Intro ao JWT
+------------------------------------------------------------------
+O que é um TOKEN?
+Um dado que serve para identificar uma parte interessada, que pode ser um user ou até mesmo outro app.
+Aquele que tem a posse de um TOKEN tem o direito de aceder ou fazer algo em um sistema.
+
+O que é JWT?
+JSON Web Token
+Surgiu para propor um padrão de formato de tokens p apps web que precisam identificar ou dar permissão a uma das partes.
+
+# Estrutura de um Token JWT
+
+HEADER
+formato JSON, onde enviamos as infos sobre o token
+{
+  "alg": "H256", -----------------------------------| algoritmo usado para assinar o token
+  "typ": "JWT" -------------------------------------| tipo do token (opcional)
+}
+Os campos que carregam essa info são chamados de clams
+
+PAYLOAD (corpo)
+formato JSON, carregam indos (clams) que são de interesse da app, e podem ser classificados como:
+- registados: os definidos pela especificação de JWT
+- publico
+- privados
+
+Entre os clams "registrados", destacam-se os (sub, iss e exp):
+{
+  "sub": "user@host.com", -----------------------| subject :: representa o principal interessado (algo que ident o user)
+  "iss": "my-tokem-manager", --------------------| issuer :: representa quem gerou o token
+  "exp": "1503183549" ---------------------------| tempo de expiração
+}
+
+A app também pode add clams(chamados de privados): interessam apenas àqueles que produzem e consomem o token
+{
+  "profile": "admin",
+  "name": "John",
+  "sub": "user@host.com", -----------------------| representa o principal interessado (algo que ident o user)
+  "iss": "my-tokem-manager", --------------------| representa quem gerou o token
+  "exp": "1503183549" ---------------------------| tempo de expiração
+}
+
+SIGNATURE
+
+Para formar o token, o header e corpo são dodificados com BASE64 URL e unidos po um ponto.
+A assinatura é opcional.
+Ex:
+HEADER.PAYLOAD.SIGNATURE
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+.eyJzdWIiOiJqdWxpYW5hQGdtYWlsLmNvbSIsImlzcyI6Im1lYXQtYXBpIiwiaWF0IjoxNTQ5MjEzMDI2fQ
+.uZ9CyOL9YPAoQJha-K6fXFdJA1sJV4e2Ujfrgkjx7Sg"
+
+USO ::
+jwt.sign({ sub: dbUser.email, iss: 'meat-api' }, 'meat-api-password') ------| o 2º param é a senha para assinar o token
 
 
-
+API AUTH0
 
 // -------- Possíveis Ocorrências ---------
 
