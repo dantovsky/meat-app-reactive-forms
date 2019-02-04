@@ -21,6 +21,7 @@ import { ReviewsComponent } from './restaurant-detail/reviews/reviews.component'
 import { OrderSummaryComponent } from './order-summary/order-summary.component';
 import { SharedModule } from "./shared/shared.module";
 import { NotFoundComponent } from './not-found/not-found.component';
+import { LoginComponent } from './security/login/login.component';
 // import { CoreModule } from './core/core.module' // criado somente numa aula e substituido pela Adição de Serviços do Módulo Compartilhado (ver aula 80)
 // import { ShoppingCartService } from "./restaurant-detail/shopping-cart/shopping-cart.service";
 // import { OrderComponent } from './order/order.component';
@@ -48,6 +49,7 @@ import { NotFoundComponent } from './not-found/not-found.component';
     ReviewsComponent,
     OrderSummaryComponent,
     NotFoundComponent,
+    LoginComponent,
   ],
   imports: [
     BrowserModule,

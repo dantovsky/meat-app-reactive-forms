@@ -10,6 +10,7 @@ export class InputComponent implements OnInit, AfterContentInit {
   // labels (ex: Endereço, Número)
   @Input() label: string
   @Input() errorMessage: string
+  @Input() showTip: boolean = true
 
   // objeto que vamos fazer referência
   input: any
@@ -20,7 +21,7 @@ export class InputComponent implements OnInit, AfterContentInit {
 
   // FormControlName
   @ContentChild(FormControlName) control: FormControlName
-  // O ngModel e o FormControlName têm as mesmas propriedades, pelo que o que foi implementado anteriormente, para 
+  // O ngModel e o FormControlName têm as mesmas propriedades, pelo que o que foi implementado anteriormente, para
   // o Template Forms, não terá problema.
 
   constructor() { }

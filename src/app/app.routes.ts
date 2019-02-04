@@ -8,10 +8,12 @@ import { ReviewsComponent } from "./restaurant-detail/reviews/reviews.component"
 // import { OrderComponent } from "./order/order.component"
 import { OrderSummaryComponent } from "./order-summary/order-summary.component";
 import { NotFoundComponent } from "./not-found/not-found.component";
+import { LoginComponent } from './security/login/login.component'
 
 // Nos detalhes de um restaurante é utilizado rotas de navegações filhas, para o funcionamento do submenu (menu e avaliações) existente na página
 export const ROUTES: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
   { path: 'restaurants', component: RestaurantsComponent },
   {
     path: 'restaurants/:id', component: RestaurantDetailComponent,
