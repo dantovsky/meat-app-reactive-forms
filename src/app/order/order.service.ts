@@ -8,12 +8,12 @@ import 'rxjs/add/operator/map'
 import { Order, OrderItem } from "app/order/order.model";
 
 import { MEAT_API } from '../app.api'
-import { LoginService } from '../security/login/login.service'
+// import { LoginService } from '../security/login/login.service'
 
 @Injectable()
 export class OrderService {
 
-  constructor(private cartService: ShoppingCartService, private http: HttpClient, private loginService: LoginService) { }
+  constructor(private cartService: ShoppingCartService, private http: HttpClient /*, private loginService: LoginService*/) { }
 
   itemsValue(): number {
     return this.cartService.total()
@@ -45,17 +45,18 @@ export class OrderService {
   checkOrder(order: Order): Observable<string> {
 
     // aqui no checkOrder é o momento em que vamos pegar a info do user autendicado e criar um header que vamos carregar o accesToken que recebemos no momento do login
-    let headers = new HttpHeaders()
-    if (this.loginService.isLoggedIn()) {
-      headers = headers.set('Authorization', `Bearer ${this.loginService.user.accessToken}`)
-    }
+    // let headers = new HttpHeaders()
+    // if (this.loginService.isLoggedIn()) {
+    //   headers = headers.set('Authorization', `Bearer ${this.loginService.user.accessToken}`)
+    // }
+    // implementacao alterada para o HTTP Interceptors
 
     // importações necessárias
     // MEAT_API,
     // Headers, RequestOptions:: para enviar os headers no 3º param
     ///const headers = new Headers()
     ///headers.append('Content-Type', 'application/json') // nome do header e valor do header
-    return this.http.post<Order>(`${MEAT_API}/orders`, order, { headers: headers }) // 3º param é o headers
+    return this.http.post<Order>(`${MEAT_API}/orders`, order) // poderia ter um 3º param, que é o headers, ex: { headers: headers }
       ///JSON.stringify(order),
       ///new RequestOptions({ headers: headers }))
       ///.map(response => response.json())

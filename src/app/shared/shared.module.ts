@@ -3,6 +3,9 @@ import { NgModule, ModuleWithProviders } from "@angular/core"
 import { CommonModule } from '@angular/common'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'
 
+// para registar um Interceptor, precisamos registar num Toekn específico
+import { HTTP_INTERCEPTORS } from '@angular/common/http'
+
 // Os componentes que vamos ter neste módulo são o: imput, radio e rating
 import { InputComponent } from './input/input.component'
 import { RadioComponent } from './radio/radio.component'
@@ -16,6 +19,10 @@ import { ScackbarComponent } from './messages/scackbar/scackbar.component';
 import { NotificationService } from "./messages/notification.service";
 import { LoginService } from "../security/login/login.service";
 
+import { LoggedIdGuard } from '../security/loggedin.guard'
+import { LeaveOrderGuard } from '../order/leave-order.guard'
+import { AuthInterceptor } from "../security/auth.interceptor";
+
 @NgModule({
   declarations: [InputComponent, RadioComponent, RatingComponent, ScackbarComponent],
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
@@ -28,7 +35,8 @@ export class SharedModule {
   static forRoot(): ModuleWithProviders {
     return {
       ngModule: SharedModule, // ja vai ter todas as configs necessárias para importar em outros lugares
-      providers: [ShoppingCartService, RestaurantsService, OrderService, NotificationService, LoginService]
+      providers: [ShoppingCartService, RestaurantsService, OrderService, NotificationService, LoginService, LoggedIdGuard, LeaveOrderGuard,
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }]
     }
   }
 }

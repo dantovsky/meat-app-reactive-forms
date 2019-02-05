@@ -6,7 +6,9 @@ import { Router } from '@angular/router'
 import { RadioOption } from "../shared/radio/radio-option.model";
 import { OrderService } from "./order.service";
 import { CartItem } from '../restaurant-detail/shopping-cart/cart-item.model'
-import { Order, OrderItem } from "./order.model";
+import { Order, OrderItem } from "./order.model"
+
+import 'rxjs/add/operator/do'
 
 @Component({
   selector: 'mt-order',
@@ -21,6 +23,8 @@ export class OrderComponent implements OnInit {
   orderForm: FormGroup
 
   delivery: number = 8
+
+  orderId: string
 
   paymentOptions: RadioOption[] = [
     { label: 'Dinheiro', value: 'MON' },
@@ -87,11 +91,18 @@ export class OrderComponent implements OnInit {
     this.orderService.remove(item)
   }
 
+  isOrderCompleted(): boolean {
+    return this.orderId !== undefined
+  }
+
   checkOrder(order: Order) {
     // transformar os itens que sao cartItems para orderItems
     order.orderItems = this.cartItems()
       .map((item: CartItem) => new OrderItem(item.quantity, item.menuItem.id))
     this.orderService.checkOrder(order)
+      .do((orderId: string) => {
+        this.orderId = orderId
+      })
       .subscribe((orderId: string) => {
 
         // navegação programática via Router :: import Router, instanciar no constructor e usar o método navigate()
@@ -101,7 +112,6 @@ export class OrderComponent implements OnInit {
         console.log(orderId)
         this.orderService.clear()
       })
-    console.log(order)
+    //console.log(order)
   }
-
 }

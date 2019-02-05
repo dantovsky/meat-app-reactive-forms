@@ -9,12 +9,13 @@ import { ReviewsComponent } from "./restaurant-detail/reviews/reviews.component"
 import { OrderSummaryComponent } from "./order-summary/order-summary.component";
 import { NotFoundComponent } from "./not-found/not-found.component";
 import { LoginComponent } from './security/login/login.component'
+import { LoggedIdGuard } from './security/loggedin.guard'
 
 // Nos detalhes de um restaurante é utilizado rotas de navegações filhas, para o funcionamento do submenu (menu e avaliações) existente na página
 export const ROUTES: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'login/:to', component: LoginComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'restaurants', component: RestaurantsComponent },
   {
     path: 'restaurants/:id', component: RestaurantDetailComponent,
     children: [
@@ -23,7 +24,11 @@ export const ROUTES: Routes = [
       { path: 'reviews', component: ReviewsComponent }
     ]
   },
-  { path: 'order', loadChildren: './order/order.module#OrderModule' },
+  { path: 'restaurants', component: RestaurantsComponent },
+  {
+    path: 'order', loadChildren: './order/order.module#OrderModule',
+    canLoad: [LoggedIdGuard], canActivate: [LoggedIdGuard]
+  },
   { path: 'order-summary', component: OrderSummaryComponent },
   { path: 'about', loadChildren: './about/about.module#AboutModule' },
   { path: '**', component: NotFoundComponent }
