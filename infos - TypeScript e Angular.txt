@@ -2028,8 +2028,15 @@ O que fazer com Interceptors?
 - profiling :: usado p caulcular o tempo que as req ao backend estão levando (de modo a descobrir os pontos a otimizar)
 - error handling :: interceptar a resposta e promover um tratamento de erro global para a app
 
+------------------------------------------------------------------
+# 127 Utilizando Zonas
+------------------------------------------------------------------
+Faz com que códigos executem dentro de uma zona.
+Ex: uma inconsistência no ErrorHandler que dispara ou esconde as notificações em momentos errados
+pode ser corrigido utilizando zonas (o código do ErrorHandler precisa estar dentro de uma zona).
 
-
+Também vai servir para as situações onde usamos uma biblioteca com uma função async, e o Angulo pode acabar por perceber
+que a execução existiu, então podemos corrigir garantindo que esse code executa dentro de uma zona.
 
 
 

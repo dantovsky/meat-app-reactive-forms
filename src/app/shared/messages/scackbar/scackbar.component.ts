@@ -39,10 +39,12 @@ export class ScackbarComponent implements OnInit {
   ngOnInit() {
     // inscrever-se para as notificações
     this.notificationService.notifier
+      // .do(message => console.log(message))
       .do(message => {
         this.message = message
         this.snackVisibility = 'visible'
       }).switchMap(message => Observable.timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
+      // .do(timer => console.log('timeout'))
       .subscribe(timer => this.snackVisibility = 'hidden')
     // Observable.timer(3000).subscribe(timer => this.snackVisibility = 'hidden')
   }
