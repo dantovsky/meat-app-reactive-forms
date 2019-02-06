@@ -2,9 +2,12 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router, NavigationEnd } from '@angular/router'
 
-import { Observable } from "rxjs/Observable";
-import 'rxjs/add/operator/do'
-import 'rxjs/add/operator/filter'
+import { Observable } from "rxjs"
+import { tap, filter } from 'rxjs/operators'
+
+// import { Observable } from "rxjs/Observable"
+// import 'rxjs/add/operator/do'
+// import 'rxjs/add/operator/filter'
 
 import { MEAT_API } from '../../app.api'
 import { User } from "app/security/login/user.model";
@@ -17,7 +20,7 @@ export class LoginService {
 
   constructor(private http: HttpClient, private router: Router) {
     // a prop events é um OBservable que quando se inscrever, vamos ser notificados da mudança de navegação
-    this.router.events.filter(e => e instanceof NavigationEnd)
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd) => this.lastURL = e.url)
   }
 
@@ -29,7 +32,7 @@ export class LoginService {
   login(email: string, password: string): Observable<User> {
     return this.http.post<User>(`${MEAT_API}/login`,
       { email: email, password: password })
-      .do(user => this.user = user)
+      .pipe(tap(user => this.user = user))
     // agora, no login.component.ts, precisa criar um método de login, associar com o botao e chamar esse método do login.service
   }
 

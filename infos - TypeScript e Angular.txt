@@ -750,6 +750,8 @@ user = { name: 'Luke Skywalker', isJedi: true }
 <!-- renderizado -->
 <div>["ONE"]</div>
 
+# Após update para Angular 6, vários formatos de Pipes foram modificados.
+
 ------------------------------------------------------------------
 # 54 Internacionalização :: Localiazando o currency para moeda BRL
 ------------------------------------------------------------------
@@ -1060,6 +1062,26 @@ Cada componente será associado com "formControlName":
 // --- A partir deste ponto, como o programa MEAT APP será refatorado de Template Forms para Reactive Forms,
 foi criado um novo repositório Git:
 https://github.com/dantovsky/meat-app-reactive-forms
+
+# Depois da atualização para o Angular 6, implementamos o BLUR (validar quando o foco sai do campo), que pode ser aplicado a nível do grupo ou para cada campo.
+- - - Exemplo da nova config ::
+importar o FormControl from '@angular/forms'
+
+...
+
+ngOnInit() {
+  this.orderForm = new FormGroup({
+    name: new FormControl('', {
+      validators: [Validators.required, Validators.minLength(5)]
+    }),
+    email: this.formBuilder.control('', [Validators.required, Validators.pattern(this.emailPattern)]),
+    emailConfirmation: this.formBuilder.control('', [Validators.required, Validators.pattern(this.emailPattern)]),
+    address: this.formBuilder.control('', [Validators.required, Validators.minLength(5)]),
+    number: this.formBuilder.control('', [Validators.required, Validators.pattern(this.numberPattern)]),
+    optionalAddress: this.formBuilder.control(''),
+    paymentOption: this.formBuilder.control('', [Validators.required])
+  }, { validators: [OrderComponent.equalsTo], updateOn: 'blur' }) // blur (validar quando o foco sai do campo), pode aplicar a nível do grupo ou campo a campo
+}
 
 ------------------------------------------------------------------
 # 73 e 74 Validators e Validação Personalizada com REACTIVE FORMS
@@ -2178,22 +2200,313 @@ O prof corrigiu isso alterando no arquivo "angular.json", onde tem:
       "replaceWith": "src/environments/environment.prod.ts"
     }
 
+------------------------------------------------------------------
+# Aula 131 - Melhorias no Processo de Compilação
+------------------------------------------------------------------
+Verificar issues do Angular ou Angular-CLI
+https://github.com/angular/angular-cli/issues
+
+Em relação ao erro de má aplicação de CSS quando fez o build da app, um user do GitHub resolveu com:
+ng build --prod --extract-css=false
+
+------------------------------------------------------------------
+# Aula 132 - RXJS 6: NOVOS OPERADORES | Como Usar o Novo Operador "pipe()"
+------------------------------------------------------------------
+O uso de filter e map agora ficam incluídos dentro de uma função pipe()
+É possível manter a compatibilidade ao fazer upgrade do Angular utilizando juntamente os pakages:
+Em package.json ::
+- RxJS
+- RxJS-compat
+
+Ex:
+"dependences": {
+  ...
+  "rxjs": "6.0.0",
+  "rxjs-compat": "6.0.0",
+  ...
+}
+
+https://github.com/ReactiveX/rxjs/tree/master/compat
+RxJS Compatibility Package
+This package is required to get backwards compatibility with RxJS previous to version 6. It contains the imports to add operators to Observable.prototype and creation methods to Observable. This is what allows, for instance, dot-chaining:
+
+Observable.interval(1)
+  .map(i => i * i)
+vs
+
+Observable.interval(1)
+  .pipe(map(i => i * i))
+
+# Existe uma forma automática de fazer estas alterações:
+https://github.com/ReactiveX/rxjs-tslint
+
+# Alteração manual do upgrade para RxJS 6:
+
+// import "rxjs/add/observable/throw" // throw passou a ser throwError
+// import { throwError } from 'rxjs/operators'
+
+### Arquivo snackbar.component.ts
+=> imports ::
+
+antes:
+import { Observable } from 'rxjs/Observable'
+import 'rxjs/add/operator/do' //operador do foi renomeado para tap
+import 'rxjs/add/operator/switchMap'
+import 'rxjs/add/observable/timer'
+
+depois:
+import { Observable, timer } from 'rxjs'
+import { tap, switchMap } from 'rxjs/operators'
 
 
+import 'rxjs/add/operator/do'
+import 'rxjs/add/operator/switchMap'
+
+=> class SnackbarComponent >> ngOnInit ::
+
+antes:
+ngOnInit() {
+  // inscrever-se para as notificações
+  this.notificationService.notifier
+    // .do(message => console.log(message))
+    .do(message => {
+      this.message = message
+      this.snackVisibility = 'visible'
+    }).switchMap(message => Observable.timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
+    // .do(timer => console.log('timeout'))
+    .subscribe(timer => this.snackVisibility = 'hidden')
+  // Observable.timer(3000).subscribe(timer => this.snackVisibility = 'hidden')
+}
+
+depois:
+ngOnInit() {
+  // inscrever-se para as notificações
+  this.notificationService.notifier
+    // .do(message => console.log(message))
+    .pipe(
+      tap(message => {
+        this.message = message
+        this.snackVisibility = 'visible'
+      }),
+      switchMap(message => timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
+    ).subscribe(timer => this.snackVisibility = 'hidden')
+}
+
+### Arquivo login.service.ts
+=> imports ::
+import { Observable } from "rxjs/Observable";
+import 'rxjs/add/operator/do'
+import 'rxjs/add/operator/filter'
+
+=> class LoginService >> constructor ::
+antes:
+this.router.events.filter(e => e instanceof NavigationEnd)
+  .subscribe((e: NavigationEnd) => this.lastURL = e.url)
+
+depois:
+this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+  .subscribe((e: NavigationEnd) => this.lastURL = e.url)
 
 
+=> class LoginService >> login() ::
+antes:
+login(email: string, password: string): Observable<User> {
+  return this.http.post<User>(`${MEAT_API}/login`,
+    { email: email, password: password })
+    .do(user => this.user = user)
+  // agora, no login.component.ts, precisa criar um método de login, associar com o botao e chamar esse método do login.service
+}
+
+depois:
+login(email: string, password: string): Observable<User> {
+  return this.http.post<User>(`${MEAT_API}/login`,
+    { email: email, password: password })
+    .pipe(tap(user => this.user = user))
+  // agora, no login.component.ts, precisa criar um método de login, associar com o botao e chamar esse método do login.service
+}
 
 
+### Arquivo restaurants.component.ts
+----------------------------------------------------------------------| antes:
+import { Component, OnInit } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations'
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
 
+import { Restaurant } from './restaurant/restaurant.model'
+import { RestaurantsService } from './restaurants.service'
 
+import 'rxjs/add/operator/switchMap'
+import 'rxjs/add/operator/do'
+import 'rxjs/add/operator/debounceTime'
+import 'rxjs/add/operator/distinctUntilChanged'
+import 'rxjs/add/operator/catch'
+import 'rxjs/add/observable/from' // usado para criar uma string a partir de um array
+import { Observable } from 'rxjs/Observable'
 
-// ------------------------------------------
-// -------- Comentários para commit ---------
-// ------------------------------------------
-# Aula 108 - Refactoring da app :: retirou-se o HttpModule e colocou o HttpClientModule, e de Http para HttpClient, todos importados from @angular/common/http. O import Response foi trocado por HttpErrorResponse. Não é necessário mais usar o map() nas funções porque agora já retornam um JSON.
+@Component({
+  selector: 'mt-restaurants',
+  templateUrl: './restaurants.component.html',
+  animations: [
+    trigger('toggleSearch', [
+      state('hidden', style({
+        opacity: 0,
+        "max-height": "0px"
+      })),
+      state('visible', style({
+        opacity: 1,
+        "max-height": "70px",
+        "margin-top": "20px"
+      })),
+      transition('* => *', animate('250ms 0s ease-in-out'))
+    ])
+  ]
+})
+export class RestaurantsComponent implements OnInit {
 
-Deploy no Apache HTTP Server, deploy usando a estratégia de caminho (path, uma opção alternativa à estratégia de hash), deploy usando o arquivo .htaccess e modificação do base-href para deploy em subdiretórios.
+  searchBarState = 'hidden'
+  restaurants: Restaurant[]
 
+  // propriedades para representar o fomr de pesquisa
+  searchForm: FormGroup // será o valor para a diretiva "formGroup" :: <form [formGroup]="searchForm">
+  searchControl: FormControl // (será o formControlName do input) :: referenciar para ouvir os valores que vão ser digitados
+
+  constructor(private restaurantsService: RestaurantsService,
+    private fb: FormBuilder) { }
+
+  ngOnInit() {
+
+    // instancias para o form de pesquisa
+    this.searchControl = this.fb.control('')
+    this.searchForm = this.fb.group({
+      searchControl: this.searchControl
+    })
+
+    this.searchControl.valueChanges
+      .debounceTime(500)
+      .distinctUntilChanged()
+      .switchMap(searchTerm =>
+        this.restaurantsService
+          .restaurants(searchTerm)
+          .catch(error => Observable.from([])))
+      .subscribe(restaurants => this.restaurants = restaurants)
+
+    this.restaurantsService.restaurants()
+      .subscribe(restaurants => this.restaurants = restaurants)
+  }
+
+  toggleSearch() {
+    this.searchBarState = this.searchBarState === 'hidden' ? 'visible' : 'hidden'
+  }
+}
+
+--------------------------------------------------------------------| depois::
+import { Component, OnInit } from '@angular/core';
+import { trigger, state, style, transition, animate } from '@angular/animations'
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms'
+
+import { Restaurant } from './restaurant/restaurant.model'
+import { RestaurantsService } from './restaurants.service'
+
+// modelo de imports novos a partir do RxJS 6
+import { Observable, from } from 'rxjs' // "from" :: usado para criar uma string a partir de um array
+import { switchMap, tap, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators' // catch passou a ser catchError
+
+@Component({
+  selector: 'mt-restaurants',
+  templateUrl: './restaurants.component.html',
+  animations: [
+    trigger('toggleSearch', [
+      state('hidden', style({
+        opacity: 0,
+        "max-height": "0px"
+      })),
+      state('visible', style({
+        opacity: 1,
+        "max-height": "70px",
+        "margin-top": "20px"
+      })),
+      transition('* => *', animate('250ms 0s ease-in-out'))
+    ])
+  ]
+})
+export class RestaurantsComponent implements OnInit {
+
+  searchBarState = 'hidden'
+  restaurants: Restaurant[]
+
+  // propriedades para representar o fomr de pesquisa
+  searchForm: FormGroup // será o valor para a diretiva "formGroup" :: <form [formGroup]="searchForm">
+  searchControl: FormControl // (será o formControlName do input) :: referenciar para ouvir os valores que vão ser digitados
+
+  constructor(private restaurantsService: RestaurantsService,
+    private fb: FormBuilder) { }
+
+  ngOnInit() {
+
+    // instancias para o form de pesquisa
+    this.searchControl = this.fb.control('')
+    this.searchForm = this.fb.group({
+      searchControl: this.searchControl
+    })
+
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap(searchTerm =>
+          this.restaurantsService
+            .restaurants(searchTerm)
+            .pipe(catchError(error => from([]))))
+      ).subscribe(restaurants => this.restaurants = restaurants)
+
+    this.restaurantsService.restaurants()
+      .subscribe(restaurants => this.restaurants = restaurants)
+  }
+
+  toggleSearch() {
+    this.searchBarState = this.searchBarState === 'hidden' ? 'visible' : 'hidden'
+  }
+}
+
+------------------------------------------------------------------
+# 133 Criando um componente com Angular Elements
+------------------------------------------------------------------
+Feature para criar componentes Angualar que pode ser usado fora de uma app Angular
+Pode ser usado em uma app JS simples que nem usa Angular.
+Poderia usar em apps com React, Vue ou Wordpress.
+
+É uma feature chamada "Angular Elemnts" e é baseada na especificação "Custom Element":
+define como podemos criar elementos personalizado para estender uma app qualquer.
+
+O Angular Elements nos dá as ferramentas para a gente fazer uma ponte entre o nosso componente Angular
+e a Spect Custom Element.
+
+Deverá ser usado em apps "não-Angular"
+
+# Mini projeto Rating Custom Element
+Não funcionou para mim, add a linha no angular.json (em scripts)
+https://www.npmjs.com/package/angular-font-awesome
+npm install --save font-awesome angular-font-awesome
+"node_modules/font-awesome/css/font-awesome.min.css"
+
+Então adicionei diretamente o link no head do index.html:
+<script defer src="https://use.fontawesome.com/releases/v5.7.1/js/all.js" integrity="sha384-eVEQC9zshBn0rFj4+TU78eNA19HMNigMviK/PU/FFjLXqa/GKPgX58rvt5Z8PLs7" crossorigin="anonymous"></script>
+
+# Instalando a feature do Angular Elements
+npm i @angular/elements@6.0.0-rc.5
+npm i @webcomponents/custom-elements -P
+
+Nem todo browser vai implementar as especificações de custom element. Nessa situação é interessante
+instalar um polyfill.
+
+No arquivo polyfills.ts ::
+
+// APPLICATION IMPORTS
+import '@webcomponents/custom-elements/src/native-shim'; // browsers que suportam parcialmente custom elements
+import '@webcomponents/custom-elements/custom-elements.min'; // browsers que não suportam absolutamente nada do custom elements
+
+=> Esta app de Rating com Angular Element ficará no link:
+https://github.com/dantovsky/angular-elements-rating-custom-element
 
 // -------- Possíveis Ocorrências ---------
 

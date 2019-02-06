@@ -6,6 +6,7 @@ import { ShoppingCartService } from './shopping-cart.service'
 @Component({
   selector: 'mt-shopping-cart',
   templateUrl: './shopping-cart.component.html',
+  preserveWhitespaces: true, // para preservar os espaços em brancos (nível local), que o update do Angular provoca (caso dos botões juntos sem espaço)
   animations: [
     trigger('row', [
       state('ready', style({ opacity: 1 })),

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl } from '@angular/forms'
+import { FormGroup, FormBuilder, FormControl, Validators, AbstractControl } from '@angular/forms'
 
 import { Router } from '@angular/router'
 
@@ -8,7 +8,8 @@ import { OrderService } from "./order.service";
 import { CartItem } from '../restaurant-detail/shopping-cart/cart-item.model'
 import { Order, OrderItem } from "./order.model"
 
-import 'rxjs/add/operator/do'
+// import 'rxjs/add/operator/do'
+import { tap } from 'rxjs/operators'
 
 @Component({
   selector: 'mt-order',
@@ -38,15 +39,17 @@ export class OrderComponent implements OnInit {
     private formBuilder: FormBuilder) { }
 
   ngOnInit() {
-    this.orderForm = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required, Validators.minLength(5)]),
+    this.orderForm = new FormGroup({
+      name: new FormControl('', {
+        validators: [Validators.required, Validators.minLength(5)]
+      }),
       email: this.formBuilder.control('', [Validators.required, Validators.pattern(this.emailPattern)]),
       emailConfirmation: this.formBuilder.control('', [Validators.required, Validators.pattern(this.emailPattern)]),
       address: this.formBuilder.control('', [Validators.required, Validators.minLength(5)]),
       number: this.formBuilder.control('', [Validators.required, Validators.pattern(this.numberPattern)]),
       optionalAddress: this.formBuilder.control(''),
-      paymentOption: this.formBuilder.control('', [Validators.required])
-    }, { validator: OrderComponent.equalsTo })
+      paymentOption: new FormControl('', { validators: [Validators.required], updateOn: 'change' })
+    }, { validators: [OrderComponent.equalsTo], updateOn: 'blur' }) // blur (validar quando o foco sai do campo), pode aplicar a nível do grupo ou campo a campo
   }
 
   // funcao para validar se os dois campos de email sao iguais Retorna um objeto com um key-value par key string : boolean
@@ -100,9 +103,9 @@ export class OrderComponent implements OnInit {
     order.orderItems = this.cartItems()
       .map((item: CartItem) => new OrderItem(item.quantity, item.menuItem.id))
     this.orderService.checkOrder(order)
-      .do((orderId: string) => {
+      .pipe(tap((orderId: string) => {
         this.orderId = orderId
-      })
+      }))
       .subscribe((orderId: string) => {
 
         // navegação programática via Router :: import Router, instanciar no constructor e usar o método navigate()

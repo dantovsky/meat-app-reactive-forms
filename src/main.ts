@@ -9,4 +9,4 @@ if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule);
+platformBrowserDynamic().bootstrapModule(AppModule) //, { preserveWhitespaces: true }); // para preservar os espaços em brancos (nível global em tempo de exec), que o update do Angular provoca (caso dos botões juntos sem espaço)

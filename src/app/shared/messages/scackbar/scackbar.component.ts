@@ -4,10 +4,12 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { NotificationService } from '../notification.service'
 
 // imports para a função de temporizador
-import { Observable } from 'rxjs/Observable'
-import 'rxjs/add/observable/timer'
-import 'rxjs/add/operator/do'
-import 'rxjs/add/operator/switchMap'
+// import { Observable } from 'rxjs/Observable'
+import { Observable, timer } from 'rxjs'
+import { tap, switchMap } from 'rxjs/operators'
+// import 'rxjs/add/operator/do' // operador do foi renomeado para tap
+// import 'rxjs/add/operator/switchMap'
+// import 'rxjs/add/observable/timer'
 
 @Component({
   selector: 'mt-scackbar',
@@ -40,13 +42,13 @@ export class ScackbarComponent implements OnInit {
     // inscrever-se para as notificações
     this.notificationService.notifier
       // .do(message => console.log(message))
-      .do(message => {
-        this.message = message
-        this.snackVisibility = 'visible'
-      }).switchMap(message => Observable.timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
-      // .do(timer => console.log('timeout'))
-      .subscribe(timer => this.snackVisibility = 'hidden')
-    // Observable.timer(3000).subscribe(timer => this.snackVisibility = 'hidden')
+      .pipe(
+        tap(message => {
+          this.message = message
+          this.snackVisibility = 'visible'
+        }),
+        switchMap(message => timer(3000)) // o switchMap faz o unsubscribe, caso ainda exista algum ativo e aciona um novo subscribe
+      ).subscribe(timer => this.snackVisibility = 'hidden')
   }
 
   // para testar a anumação: criamos um botão no template: <button (click)="toggleSnack()">Click me</button>
